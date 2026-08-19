@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Metadata } from "next";
 import type { Contact } from "@/types";
 import { ContactForm } from "@/components/ContactForm";
 import { ContactList } from "@/components/ContactList";
 import { AriaLiveRegion } from "@/components/AriaLiveRegion";
+import { loadStoredContacts, saveStoredContacts } from "@/lib/contactStorage";
 
 // Note: metadata must be in a server component; placed in a separate layout or
 // via a server wrapper. For this client component page we set document title inline.
@@ -23,10 +23,7 @@ export default function ContactsPage() {
   useEffect(() => {
     async function loadContacts() {
       try {
-        const res = await fetch("/api/contacts");
-        if (!res.ok) throw new Error("Failed to fetch contacts");
-        const data = await res.json();
-        setContacts(data);
+        setContacts(loadStoredContacts());
       } catch {
         setLoadError("Could not load contacts. Please refresh.");
       } finally {
@@ -37,7 +34,11 @@ export default function ContactsPage() {
   }, []);
 
   function handleContactAdded(contact: Contact) {
-    setContacts((prev) => [...prev, contact]);
+    setContacts((prev) => {
+      const next = [...prev, contact];
+      saveStoredContacts(next);
+      return next;
+    });
     setStatusMsg(`${contact.name} added to trusted contacts.`);
   }
 
@@ -46,7 +47,11 @@ export default function ContactsPage() {
     try {
       const res = await fetch(`/api/contacts?id=${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
-      setContacts((prev) => prev.filter((c) => c.id !== id));
+      setContacts((prev) => {
+        const next = prev.filter((c) => c.id !== id);
+        saveStoredContacts(next);
+        return next;
+      });
       setStatusMsg(contact ? `${contact.name} removed from trusted contacts.` : "Contact removed.");
     } catch {
       setStatusMsg("Failed to remove contact. Please try again.");

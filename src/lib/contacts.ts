@@ -88,6 +88,13 @@ export function writeContacts(contacts: Contact[]): void {
 }
 
 export function addContact(payload: CreateContactPayload): Contact {
+  const newContact = createContact(payload);
+  const existing = readContacts();
+  writeContacts([...existing, newContact]);
+  return newContact;
+}
+
+export function createContact(payload: CreateContactPayload): Contact {
   const validation = validateContact(payload);
   if (!validation.valid || !validation.contactType) {
     throw new Error(validation.errors.join("; "));
@@ -100,9 +107,6 @@ export function addContact(payload: CreateContactPayload): Contact {
     contactType: validation.contactType,
     createdAt: new Date().toISOString(),
   };
-
-  const existing = readContacts();
-  writeContacts([...existing, newContact]);
   return newContact;
 }
 

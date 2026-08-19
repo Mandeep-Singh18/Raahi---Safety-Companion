@@ -6,6 +6,7 @@ import { SessionSetup } from "@/components/SessionSetup";
 import { SessionActive } from "@/components/SessionActive";
 import { AlertDisplay } from "@/components/AlertDisplay";
 import { createSession } from "@/lib/session";
+import { loadStoredContacts } from "@/lib/contactStorage";
 
 type PageState = "setup" | "active" | "safe" | "alerted";
 
@@ -21,10 +22,7 @@ export default function SessionPage() {
 
   // Load contacts once on mount
   useEffect(() => {
-    fetch("/api/contacts")
-      .then((r) => r.json())
-      .then((data) => setContacts(Array.isArray(data) ? data : []))
-      .catch(() => setContacts([]));
+    setContacts(loadStoredContacts());
   }, []);
 
   function handleStart(mode: SessionMode, durationMinutes: number, location: GeoLocation | null) {

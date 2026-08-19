@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readContacts, addContact, deleteContact, validateContact } from "@/lib/contacts";
+import { readContacts, createContact, validateContact } from "@/lib/contacts";
 import type { ApiError } from "@/types";
 
 /**
@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const newContact = addContact({
+    // Vercel's filesystem is ephemeral; the browser stores contacts locally.
+    const newContact = createContact({
       name: typeof name === "string" ? name : "",
       contactInfo: typeof contactInfo === "string" ? contactInfo : "",
     });
@@ -79,15 +80,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(error, { status: 400 });
   }
 
-  try {
-    const deleted = deleteContact(id);
-    if (!deleted) {
-      const error: ApiError = { error: "Contact not found." };
-      return NextResponse.json(error, { status: 404 });
-    }
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch {
-    const error: ApiError = { error: "Failed to delete contact." };
-    return NextResponse.json(error, { status: 500 });
-  }
+  // The browser owns contact storage; the client removes this ID from localStorage.
+  return NextResponse.json({ success: true, id }, { status: 200 });
 }

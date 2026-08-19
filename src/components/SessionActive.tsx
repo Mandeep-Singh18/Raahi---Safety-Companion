@@ -33,10 +33,34 @@ export function SessionActive({ session, contacts, onSafe, onAlert }: SessionAct
           ? "SOS activated. Alert sent to your trusted contacts."
           : "Check-in time expired. Alert sent to your trusted contacts.";
       setAlertAnnouncement(msg);
+
+      // Fire real email alerts — non-blocking, runs in background
+      fetch("/api/alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(alert),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.sent > 0) {
+            console.log(`[Raahi] Alert notifications sent to ${data.sent} contact(s).`);
+          } else {
+            const deliveryError = data.results?.find(
+              (result: { success: boolean; error?: string }) => !result.success
+            )?.error;
+            console.warn(
+              "[Raahi] Alert delivery failed:",
+              deliveryError ?? data.message ?? data.error ?? "No provider is configured."
+            );
+          }
+        })
+        .catch((err) => console.error("[Raahi] Failed to call /api/alert:", err));
+
       onAlert(alert);
     },
     [session, contacts, onAlert]
   );
+
 
   useEffect(() => {
     if (hasExpired) return;

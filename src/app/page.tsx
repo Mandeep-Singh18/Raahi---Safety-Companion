@@ -259,8 +259,8 @@ export default function HomePage() {
         <p className="flex items-start gap-2 text-sm text-amber-300">
           <span aria-hidden="true" className="mt-0.5 shrink-0">⚠</span>
           <span>
-            <strong>Phase 1:</strong> This app simulates alert sending — no real SMS or email is
-            dispatched yet. Add AI-powered escalation in Phase 2.
+            Configure Gmail or Twilio in `.env.local` to deliver real email or SMS alerts. Without
+            provider credentials, the app only records the alert on this device.
           </span>
         </p>
       </aside>
